@@ -7,7 +7,6 @@ use \Aws\S3\S3Client;
 /**
  * Class S3
  * Simple Class to connect to S3.
- * @package SuperGroup
  */
 class S3
 {
@@ -26,14 +25,14 @@ class S3
         $this->s3Client = S3Client::factory();
     }
 
-    public function setBucket($bucket)
-    {
-        $this->bucket = $bucket;
-    }
-
     public function getBucket()
     {
         return $this->bucket;
+    }
+
+    public function setBucket($bucket)
+    {
+        $this->bucket = $bucket;
     }
 
     /**
