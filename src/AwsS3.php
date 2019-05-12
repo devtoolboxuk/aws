@@ -4,7 +4,7 @@ namespace devtoolboxuk\aws;
 
 use \Aws\S3\S3Client;
 
-class S3
+class AwsS3
 {
     /**
      * @var object
@@ -31,7 +31,6 @@ class S3
         return $this->bucket;
     }
 
-
     /**
      * @param $localFilename
      * @param $s3filename
@@ -52,17 +51,12 @@ class S3
         }
     }
 
-    public function saveObject($localFilename, $s3filename)
-    {
-        return $this->getObject($localFilename, $s3filename);
-    }
-
-
     /**
-     * @param $localFilename
+     * Saves an object to a local location
      * @param $s3filename
+     * @param $localFilename
      */
-    public function getObject($localFilename, $s3filename)
+    public function saveObject($s3filename, $localFilename)
     {
         try {
             $this->s3Client->getObject([
@@ -72,6 +66,24 @@ class S3
             ]);
         } catch (S3Exception $e) {
             throw new \S3Exception(sprintf("Failed to get file '%s' from S3.", $s3filename));
+        }
+    }
+
+    /**
+     * Reads an object of off the S3 Bucket
+     * @param $s3filename
+     * @return mixed
+     */
+    public function getObject($s3filename)
+    {
+        try {
+            $result = $this->s3Client->getObject([
+                'Bucket' => $this->bucket,
+                'Key' => $s3filename
+            ]);
+            return $result['Body'];
+        } catch (S3Exception $e) {
+            throw new \S3Exception(sprintf("Failed to read file '%s' from S3.", $s3filename));
         }
     }
 
