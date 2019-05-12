@@ -4,10 +4,6 @@ namespace devtoolboxuk\aws;
 
 use \Aws\S3\S3Client;
 
-/**
- * Class S3
- * Simple Class to connect to S3.
- */
 class S3
 {
     /**
@@ -25,15 +21,16 @@ class S3
         $this->s3Client = S3Client::factory();
     }
 
+    public function setBucket($bucket)
+    {
+        $this->bucket = $bucket;
+    }
+
     public function getBucket()
     {
         return $this->bucket;
     }
 
-    public function setBucket($bucket)
-    {
-        $this->bucket = $bucket;
-    }
 
     /**
      * @param $localFilename
@@ -48,7 +45,6 @@ class S3
             'Key' => $s3filename,
             'SourceFile' => $localFilename
         ];
-
         try {
             $this->s3Client->putObject($data);
         } catch (S3Exception $e) {
@@ -56,23 +52,54 @@ class S3
         }
     }
 
+    public function saveObject($localFilename, $s3filename)
+    {
+        return $this->getObject($localFilename, $s3filename);
+    }
+
+
+    /**
+     * @param $localFilename
+     * @param $s3filename
+     */
     public function getObject($localFilename, $s3filename)
     {
-
-        $data = [
-            'Bucket' => $this->bucket,
-            'Key' => $s3filename,
-            'SaveAs' => $localFilename
-        ];
-
         try {
-            $this->s3Client->getObject($data);
+            $this->s3Client->getObject([
+                'Bucket' => $this->bucket,
+                'Key' => $s3filename,
+                'SaveAs' => $localFilename
+            ]);
         } catch (S3Exception $e) {
-            throw new RuntimeException(sprintf("Failed to get file '%s' from S3.", $s3filename));
+            throw new \S3Exception(sprintf("Failed to get file '%s' from S3.", $s3filename));
         }
     }
 
+    public function listObjects($folder)
+    {
+        try {
+            return $this->s3Client->getIterator('ListObjects', array(
+                "Bucket" => $this->bucket,
+                "Prefix" => $folder
+            ));
+        } catch (S3Exception $e) {
+            throw new \S3Exception(sprintf("Failed to list objects in '%s' from S3.", $this->bucket));
+        }
+    }
+
+    /**
+     * Alternative name for deleteObject
+     * @param $s3filename
+     */
     public function removeObject($s3filename)
+    {
+        return $this->deleteObject($s3filename);
+    }
+
+    /**
+     * @param $s3filename
+     */
+    public function deleteObject($s3filename)
     {
         try {
             $this->s3Client->deleteObject([
@@ -80,8 +107,7 @@ class S3
                 'Key' => $s3filename
             ]);
         } catch (S3Exception $e) {
-            throw new RuntimeException(sprintf("Failed to delete file '%s' from S3.", $s3filename));
+            throw new \S3Exception(sprintf("Failed to delete file '%s' from S3.", $s3filename));
         }
     }
-
 }

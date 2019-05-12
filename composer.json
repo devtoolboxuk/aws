@@ -1,29 +1,22 @@
 {
   "name": "devtoolboxuk/aws",
-  "description": "AWS SDK Service",
+  "description": "PHP Library to access the AWS SDK",
   "type": "library",
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "": "library/",
       "devtoolboxuk\\aws\\": "src/"
     },
     "classmap": [
       "src"
     ]
   },
-  "authors": [
-    {
-      "name": "Rob Wilson",
-      "email": "rob@dev-toolbox.co.uk"
-    }
-  ],
   "minimum-stability": "dev",
-  "require": {
-    "aws/aws-sdk-php": "2.*"
-  },
   "scripts": {
     "test": "./vendor/bin/phpunit"
+  },
+  "require": {
+    "aws/aws-sdk-php": "2.*"
   },
   "require-dev": {
     "phpunit/phpunit": "*"
