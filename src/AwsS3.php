@@ -32,6 +32,45 @@ class AwsS3
     }
 
     /**
+     * @param $sourceFile
+     * @param $destinationFile
+     */
+    public function copyLocalObject($sourceFile, $destinationFile)
+    {
+        $data = [
+            'Bucket' => $this->bucket,
+            'Key' => $destinationFile,
+            'CopySource' => $this->bucket.'/'.$sourceFile
+        ];
+
+        try {
+            $this->s3Client->copyObject($data);
+        } catch (S3Exception $e) {
+            throw new \S3Exception(sprintf("Failed to copy file '%s' to '%s' in S3.", $sourceFile, $destinationFile));
+        }
+    }
+
+    /**
+     * @param $sourceBucket
+     * @param $sourceFile
+     * @param $destinationFile
+     */
+    public function copyObject($sourceBucket,$sourceFile, $destinationFile)
+    {
+        $data = [
+            'Bucket' => $this->bucket,
+            'Key' => $destinationFile,
+            'CopySource' => $sourceBucket.'/'.$sourceFile
+        ];
+
+        try {
+            $this->s3Client->copyObject($data);
+        } catch (S3Exception $e) {
+            throw new \S3Exception(sprintf("Failed to copy file '%s' to '%s' in S3.", $sourceFile, $destinationFile));
+        }
+    }
+
+    /**
      * @param $localFilename
      * @param $s3filename
      * @param string $acl
