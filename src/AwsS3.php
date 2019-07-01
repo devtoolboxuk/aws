@@ -34,10 +34,12 @@ class AwsS3
     /**
      * @param $sourceFile
      * @param $destinationFile
+     * @param string $acl
      */
-    public function copyLocalObject($sourceFile, $destinationFile)
+    public function copyLocalObject($sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
     {
         $data = [
+            'ACL' => $acl,
             'Bucket' => $this->bucket,
             'Key' => $destinationFile,
             'CopySource' => $this->bucket.'/'.$sourceFile
@@ -54,10 +56,12 @@ class AwsS3
      * @param $sourceBucket
      * @param $sourceFile
      * @param $destinationFile
+     * @param string $acl
      */
-    public function copyObject($sourceBucket,$sourceFile, $destinationFile)
+    public function copyObject($sourceBucket,$sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
     {
         $data = [
+            'ACL' => $acl,
             'Bucket' => $this->bucket,
             'Key' => $destinationFile,
             'CopySource' => $sourceBucket.'/'.$sourceFile
