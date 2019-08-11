@@ -99,8 +99,11 @@ class AwsS3
     }
 
     /**
-     * @author https://github.com/halfer
-     * @return StreamWrapper|null
+     * Gets a stream wrapper to load data in chunks
+     *
+     * The docs in the Aws\S3\StreamWrapper class are well worth a look.
+     *
+     * @return StreamWrapper
      */
     public function getStreamWrapper()
     {
@@ -241,20 +244,6 @@ class AwsS3
         } catch (S3Exception $e) {
             throw new \S3Exception(sprintf("Failed to read file '%s' from S3.", $s3filename));
         }
-    }
-
-    /**
-     * Gets a stream wrapper to load data in chunks
-     *
-     * The docs in the Aws\S3\StreamWrapper class are well worth a look.
-     *
-     * @return StreamWrapper
-     */
-    public function getStreamWrapper()
-    {
-        StreamWrapper::register($this->s3Client);
-
-        return new StreamWrapper();
     }
 
     public function listObjects($folder)
