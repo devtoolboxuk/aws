@@ -7,29 +7,141 @@ use Aws\S3\StreamWrapper;
 
 class AwsS3
 {
+    private static $streamWrapper = null;
     /**
      * @var object
      */
     protected $s3Client;
-
     /**
      * @var
      */
     protected $bucket;
 
-    function __construct()
+    /**
+     * 10K Chunk
+     * @var int
+     */
+    protected $streamChunk = 10240;
+
+    /**
+     * @var null
+     */
+    protected $downloadStreamChunks = null;
+
+    /**
+     * @var null
+     */
+    protected $downloadStream = null;
+
+
+    public function __construct()
     {
         $this->s3Client = S3Client::factory();
-    }
-
-    public function setBucket($bucket)
-    {
-        $this->bucket = $bucket;
     }
 
     public function getBucket()
     {
         return $this->bucket;
+    }
+
+    public function setBucket($bucket)
+    {
+        $this->bucket = $bucket;
+        $this->invalidateStatic();
+    }
+
+    private function invalidateStatic()
+    {
+        self::$streamWrapper = null;
+    }
+
+    public function setstreamChunk($value)
+    {
+        $this->streamChunk = $value;
+    }
+
+    /**
+     * @param $objectName
+     * @param null $chunks
+     */
+    public function openDownloadStream($objectName, $chunks = null)
+    {
+        $this->downloadStreamChunks = $chunks;
+        if (!$this->downloadStreamChunks) {
+            $this->downloadStreamChunks = $this->countDownloadStreamChunks($objectName);
+        }
+
+        $this->downloadStream = $this->getStreamWrapper();
+        $openedPath = null;
+
+        $this->downloadStream->stream_open(sprintf("s3://%s/%s", $this->bucket, $objectName), 'r', null, $openedPath);
+    }
+
+    /**
+     * @param $objectName
+     * @return int
+     */
+    public function countDownloadStreamChunks($objectName)
+    {
+        $stream = $this->getStreamWrapper();
+        $openedPath = null;
+
+        $stream->stream_open(sprintf("s3://%s/%s", $this->bucket, $objectName), 'r', null, $openedPath);
+
+        $chunkCount = 0;
+        while (!$stream->stream_eof()) {
+            $stream->stream_read($this->streamChunk);
+            $chunkCount++;
+        }
+
+        $stream->stream_close();
+        return $chunkCount;
+    }
+
+    /**
+     * @author https://github.com/halfer
+     * @return StreamWrapper|null
+     */
+    public function getStreamWrapper()
+    {
+        if (self::$streamWrapper === null) {
+            StreamWrapper::register($this->s3Client);
+            self::$streamWrapper = new StreamWrapper();
+        }
+        return self::$streamWrapper;
+    }
+
+    /**
+     * @param int $offSet
+     * @return null
+     */
+    public function getDownloadStream($offSet = 0)
+    {
+        if (!$this->downloadStreamChunks) {
+            $this->closeDownloadStream();
+            return null;
+        }
+
+        if ($offSet > $this->downloadStreamChunks) {
+            $offSet = $this->downloadStreamChunks;
+        }
+
+        while (!$this->downloadStream->stream_eof()) {
+            $this->downloadStream->stream_seek($offSet * $this->streamChunk);
+            $data = $this->downloadStream->stream_read($this->streamChunk);
+            if ($offSet == $this->downloadStreamChunks) {
+                $this->closeDownloadStream();
+            }
+            return $data;
+        }
+    }
+
+    /**
+     * Closes the download stream
+     */
+    public function closeDownloadStream()
+    {
+        $this->downloadStream->stream_close();
     }
 
     /**
@@ -43,7 +155,7 @@ class AwsS3
             'ACL' => $acl,
             'Bucket' => $this->bucket,
             'Key' => $destinationFile,
-            'CopySource' => $this->bucket.'/'.$sourceFile
+            'CopySource' => $this->bucket . '/' . $sourceFile
         ];
 
         try {
@@ -59,13 +171,13 @@ class AwsS3
      * @param $destinationFile
      * @param string $acl
      */
-    public function copyObject($sourceBucket,$sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
+    public function copyObject($sourceBucket, $sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
     {
         $data = [
             'ACL' => $acl,
             'Bucket' => $this->bucket,
             'Key' => $destinationFile,
-            'CopySource' => $sourceBucket.'/'.$sourceFile
+            'CopySource' => $sourceBucket . '/' . $sourceFile
         ];
 
         try {
