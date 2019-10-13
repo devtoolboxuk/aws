@@ -172,6 +172,19 @@ class AwsS3
      * @param $sourceBucket
      * @param $sourceFile
      * @param $destinationFile
+     * @param $acl
+     */
+    public function moveObject($sourceBucket, $sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
+    {
+        $this->copyObject($sourceBucket, $sourceFile, $destinationFile, $acl);
+        $this->deleteObject($sourceFile);
+    }
+
+
+    /**
+     * @param $sourceBucket
+     * @param $sourceFile
+     * @param $destinationFile
      * @param string $acl
      */
     public function copyObject($sourceBucket, $sourceFile, $destinationFile, $acl = 'bucket-owner-full-control')
