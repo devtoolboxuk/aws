@@ -259,12 +259,18 @@ class AwsS3
         }
     }
 
-    public function listObjects($folder)
+    /**
+     * @param string $folder
+     * @param string $delimiter
+     * @return mixed
+     */
+    public function listObjects($folder = '',$delimiter = '')
     {
         try {
             return $this->s3Client->getIterator('ListObjects', array(
                 "Bucket" => $this->bucket,
-                "Prefix" => $folder
+                "Prefix" => $folder,
+                "Delimiter" => $delimiter
             ));
         } catch (S3Exception $e) {
             throw new \S3Exception(sprintf("Failed to list objects in '%s' from S3.", $this->bucket));
